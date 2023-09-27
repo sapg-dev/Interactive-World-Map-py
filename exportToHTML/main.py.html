@@ -1,0 +1,81 @@
+<html>
+<head>
+<title>main.py</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #7a7e85;}
+.s3 { color: #bcbec4;}
+.s4 { color: #6aab73;}
+.s5 { color: #2aacb8;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+main.py</font>
+</center></td></tr></table>
+<pre><span class="s0">import </span><span class="s1">json</span>
+<span class="s0">import </span><span class="s1">folium</span>
+<span class="s0">import </span><span class="s1">branca</span>
+<span class="s0">import </span><span class="s1">requests</span>
+
+<span class="s2"># Fetching the GeoJSON data of countries</span>
+<span class="s1">url </span><span class="s3">= </span><span class="s4">'https://raw.githubusercontent.com/python-visualization/folium/master/examples/data/world-countries.json'</span>
+<span class="s1">geo_json_data </span><span class="s3">= </span><span class="s1">json</span><span class="s3">.</span><span class="s1">loads</span><span class="s3">(</span><span class="s1">requests</span><span class="s3">.</span><span class="s1">get</span><span class="s3">(</span><span class="s1">url</span><span class="s3">).</span><span class="s1">text</span><span class="s3">)</span>
+
+<span class="s2"># Loading population data from a JSON file</span>
+<span class="s0">with </span><span class="s1">open</span><span class="s3">(</span><span class="s4">'country-by-population (1).json'</span><span class="s3">) </span><span class="s0">as </span><span class="s1">f</span><span class="s3">:</span>
+    <span class="s1">population_data </span><span class="s3">= </span><span class="s1">json</span><span class="s3">.</span><span class="s1">load</span><span class="s3">(</span><span class="s1">f</span><span class="s3">)</span>
+
+<span class="s2"># Convert list of dictionaries into a dictionary</span>
+<span class="s1">country_population </span><span class="s3">= {</span><span class="s1">item</span><span class="s3">[</span><span class="s4">'country'</span><span class="s3">]: </span><span class="s1">item</span><span class="s3">[</span><span class="s4">'population'</span><span class="s3">] </span><span class="s0">for </span><span class="s1">item </span><span class="s0">in </span><span class="s1">population_data</span><span class="s3">}</span>
+
+<span class="s2"># Creating a colormap</span>
+<span class="s1">max_population </span><span class="s3">= </span><span class="s1">max</span><span class="s3">(</span><span class="s1">country_population</span><span class="s3">.</span><span class="s1">values</span><span class="s3">())</span>
+<span class="s1">colormap </span><span class="s3">= </span><span class="s1">branca</span><span class="s3">.</span><span class="s1">colormap</span><span class="s3">.</span><span class="s1">linear</span><span class="s3">.</span><span class="s1">YlOrRd_09</span><span class="s3">.</span><span class="s1">scale</span><span class="s3">(</span><span class="s5">0</span><span class="s3">, </span><span class="s1">max_population</span><span class="s3">)</span>
+<span class="s1">colormap </span><span class="s3">= </span><span class="s1">colormap</span><span class="s3">.</span><span class="s1">to_step</span><span class="s3">(</span><span class="s1">index</span><span class="s3">=[</span><span class="s5">0</span><span class="s3">, </span><span class="s5">100000</span><span class="s3">, </span><span class="s5">1000000</span><span class="s3">, </span><span class="s5">10000000</span><span class="s3">, </span><span class="s5">100000000</span><span class="s3">, </span><span class="s5">500000000</span><span class="s3">, </span><span class="s1">max_population</span><span class="s3">])</span>
+<span class="s1">colormap</span><span class="s3">.</span><span class="s1">caption </span><span class="s3">= </span><span class="s4">'Population of Countries'</span>
+
+<span class="s2"># Function to return the color based on population</span>
+<span class="s0">def </span><span class="s1">style_function</span><span class="s3">(</span><span class="s1">feature</span><span class="s3">):</span>
+    <span class="s1">country_name </span><span class="s3">= </span><span class="s1">feature</span><span class="s3">[</span><span class="s4">'properties'</span><span class="s3">][</span><span class="s4">'name'</span><span class="s3">]</span>
+    <span class="s1">population </span><span class="s3">= </span><span class="s1">country_population</span><span class="s3">.</span><span class="s1">get</span><span class="s3">(</span><span class="s1">country_name</span><span class="s3">)  </span><span class="s2"># Get population from the dictionary</span>
+    <span class="s0">if </span><span class="s1">population </span><span class="s0">is None</span><span class="s3">:</span>
+        <span class="s0">return </span><span class="s3">{</span>
+            <span class="s4">'fillOpacity'</span><span class="s3">: </span><span class="s5">0</span><span class="s3">,</span>
+            <span class="s4">'weight'</span><span class="s3">: </span><span class="s5">0</span><span class="s3">,</span>
+            <span class="s4">'fillColor'</span><span class="s3">: </span><span class="s4">'#black'</span>
+        <span class="s3">}</span>
+
+    <span class="s0">return </span><span class="s3">{</span>
+        <span class="s4">'fillOpacity'</span><span class="s3">: </span><span class="s5">0.5</span><span class="s3">,</span>
+        <span class="s4">'weight'</span><span class="s3">: </span><span class="s5">0</span><span class="s3">,</span>
+        <span class="s4">'fillColor'</span><span class="s3">: </span><span class="s4">'#black' </span><span class="s0">if </span><span class="s1">population </span><span class="s0">is None else </span><span class="s1">colormap</span><span class="s3">(</span><span class="s1">population</span><span class="s3">)</span>
+    <span class="s3">}</span>
+
+<span class="s2"># Creating a folium map</span>
+<span class="s1">m </span><span class="s3">= </span><span class="s1">folium</span><span class="s3">.</span><span class="s1">Map</span><span class="s3">(</span><span class="s1">location</span><span class="s3">=[</span><span class="s5">0</span><span class="s3">, </span><span class="s5">0</span><span class="s3">], </span><span class="s1">zoom_start</span><span class="s3">=</span><span class="s5">2</span><span class="s3">)</span>
+
+<span class="s2"># Adding GeoJson to the map with styling</span>
+<span class="s1">folium</span><span class="s3">.</span><span class="s1">GeoJson</span><span class="s3">(</span>
+    <span class="s1">geo_json_data</span><span class="s3">,</span>
+    <span class="s1">style_function</span><span class="s3">=</span><span class="s1">style_function</span><span class="s3">,</span>
+    <span class="s1">tooltip</span><span class="s3">=</span><span class="s1">folium</span><span class="s3">.</span><span class="s1">GeoJsonTooltip</span><span class="s3">(</span>
+        <span class="s1">fields</span><span class="s3">=[</span><span class="s4">'name'</span><span class="s3">],</span>
+        <span class="s1">aliases</span><span class="s3">=[</span><span class="s4">'Country'</span><span class="s3">],</span>
+        <span class="s1">labels</span><span class="s3">=</span><span class="s0">True</span><span class="s3">,</span>
+        <span class="s1">sticky</span><span class="s3">=</span><span class="s0">False</span>
+    <span class="s3">)</span>
+<span class="s3">).</span><span class="s1">add_to</span><span class="s3">(</span><span class="s1">m</span><span class="s3">)</span>
+
+<span class="s2"># Adding the colormap to the map</span>
+<span class="s1">colormap</span><span class="s3">.</span><span class="s1">add_to</span><span class="s3">(</span><span class="s1">m</span><span class="s3">)</span>
+
+<span class="s2"># Saving the map to an HTML file</span>
+<span class="s1">m</span><span class="s3">.</span><span class="s1">save</span><span class="s3">(</span><span class="s4">'interactive_world_map.html'</span><span class="s3">)</span>
+</pre>
+</body>
+</html>
